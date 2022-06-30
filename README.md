@@ -6,7 +6,7 @@
 
 # trpc-chrome 🚧
 
-### **[Chrome Extensions](https://developer.chrome.com/docs/extensions/mv3/) adapter for [tRPC](https://trpc.io/)** 🧩
+### **[Chrome extension](https://developer.chrome.com/docs/extensions/mv3/) adapter for [tRPC](https://trpc.io/)** 🧩
 
 - Easy communication for web extensions.
 - Typesafe messaging between content & background scripts.
