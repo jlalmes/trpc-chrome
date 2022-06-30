@@ -1,6 +1,6 @@
 import { TRPCClientError, TRPCLink } from '@trpc/client';
 // eslint-disable-next-line import/no-unresolved
-import { ObservableCallbacks } from '@trpc/client/dist/declarations/src/internals/observable';
+import type { ObservableCallbacks } from '@trpc/client/dist/declarations/src/internals/observable';
 import { AnyRouter, ProcedureType } from '@trpc/server';
 import { TRPCErrorResponse, TRPCResult } from '@trpc/server/rpc';
 
@@ -63,9 +63,9 @@ export const chromeLink = <TRouter extends AnyRouter>(
       let isDone = false;
 
       const unsubscribe = () => {
-        const pendingRequest = pendingRequests[id]!;
+        const callbacks = pendingRequests[id]?.callbacks;
         delete pendingRequests[id];
-        pendingRequest.callbacks.onDone?.();
+        callbacks?.onDone?.();
 
         if (type === 'subscription') {
           port.postMessage({

@@ -18,7 +18,7 @@
   "typings": "dist/index.d.ts",
   "workspaces": [
     ".",
-    "examples/*"
+    "example"
   ],
   "scripts": {
     "test": "tsc --noEmit && jest --verbose",
@@ -32,6 +32,7 @@
     "@trpc/server": "^9.23.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.22.2",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/chrome": "^0.0.190",
     "@types/jest": "^27.5.2",

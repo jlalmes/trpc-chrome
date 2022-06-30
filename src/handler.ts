@@ -1,8 +1,8 @@
 import { AnyRouter, Subscription, TRPCError } from '@trpc/server';
 // eslint-disable-next-line import/no-unresolved
-import { NodeHTTPCreateContextOption } from '@trpc/server/dist/declarations/src/adapters/node-http';
+import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/declarations/src/adapters/node-http';
 // eslint-disable-next-line import/no-unresolved
-import { HTTPBaseHandlerOptions } from '@trpc/server/dist/declarations/src/http/internals/types';
+import type { HTTPBaseHandlerOptions } from '@trpc/server/dist/declarations/src/http/internals/types';
 import { TRPCErrorShape, TRPCResult } from '@trpc/server/rpc';
 
 import { getErrorFromUnknown } from './errors';
@@ -141,6 +141,8 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
               type: 'started',
             },
           });
+
+          await subscription.start();
         } catch (cause) {
           const error = getErrorFromUnknown(cause);
 
