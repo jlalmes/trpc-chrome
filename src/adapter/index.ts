@@ -5,8 +5,8 @@ import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/adapters/nod
 import type { BaseHandlerOptions } from '@trpc/server/dist/internals/types';
 import { Unsubscribable, isObservable } from '@trpc/server/observable';
 
+import type { TRPCChromeRequest, TRPCChromeResponse } from '../types';
 import { getErrorFromUnknown } from './errors';
-import type { TRPCChromeRequest, TRPCChromeResponse } from './types';
 
 export type CreateChromeContextOptions = {
   req: chrome.runtime.Port;
@@ -82,7 +82,7 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
 
         const segments = params.path.split('.');
         const procedureFn = segments.reduce(
-          (acc, curr) => acc[curr],
+          (acc, segment) => acc[segment],
           caller as any,
         ) as AnyProcedure;
 

@@ -2,7 +2,7 @@ import { TRPCClientError, TRPCLink } from '@trpc/client';
 import type { AnyRouter } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 
-import type { TRPCChromeRequest, TRPCChromeResponse } from './types';
+import type { TRPCChromeRequest, TRPCChromeResponse } from '../types';
 
 export type ChromeLinkOptions = {
   port: chrome.runtime.Port;
@@ -23,7 +23,6 @@ export const chromeLink = <TRouter extends AnyRouter>(
           const input = runtime.transformer.serialize(op.input);
 
           const onDisconnect = () => {
-            // TODO: reconnect?
             observer.error(new TRPCClientError('Port disconnected prematurely'));
           };
 

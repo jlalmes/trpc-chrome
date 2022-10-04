@@ -15,14 +15,23 @@
   "homepage": "https://github.com/jlalmes/trpc-chrome",
   "repository": "github:jlalmes/trpc-chrome",
   "bugs": "https://github.com/jlalmes/trpc-chrome/issues",
-  "typings": "index.d.ts",
+  "exports": {
+    "./adapter": {
+      "types": "./dist/adapter/index.d.ts",
+      "default": "./dist/adapter/index.js"
+    },
+    "./link": {
+      "types": "./dist/link/index.d.ts",
+      "default": "./dist/link/index.js"
+    }
+  },
   "workspaces": [
     ".",
     "examples/with-plasmo"
   ],
   "scripts": {
     "test": "tsc --noEmit && jest --verbose",
-    "build": "rimraf dist && tsc -p tsconfig.build.json && ts-node frank-dist"
+    "build": "rimraf dist && tsc -p tsconfig.build.json"
   },
   "peerDependencies": {
     "@trpc/client": "10.0.0-proxy-beta.13",
