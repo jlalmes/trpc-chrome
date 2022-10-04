@@ -1,10 +1,8 @@
 import { createTRPCProxyClient } from '@trpc/client';
 import { useRef, useState } from 'react';
-import { chromeLink } from 'trpc-chrome/link';
+import { chromeLink } from 'trpc-chrome/dist/link';
 
 import type { AppRouter } from './background';
-
-(window as any).Deno = true;
 
 const port = chrome.runtime.connect();
 const trpc = createTRPCProxyClient<AppRouter>({

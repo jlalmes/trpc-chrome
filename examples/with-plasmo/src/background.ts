@@ -1,5 +1,5 @@
 import { initTRPC } from '@trpc/server';
-import { createChromeHandler } from 'trpc-chrome/adapter';
+import { createChromeHandler } from 'trpc-chrome/dist/handler';
 import { z } from 'zod';
 
 const t = initTRPC.create();
