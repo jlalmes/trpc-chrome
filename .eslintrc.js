@@ -34,7 +34,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.js', '*.jsx'],
+      files: ['*.js', '*.jsx', '*.mjs', '*.cjs'],
       rules: {},
     },
   ],
