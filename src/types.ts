@@ -1,15 +1,20 @@
-import { TRPCErrorResponse, TRPCRequest, TRPCResultResponse } from '@trpc/server/rpc';
+import type {
+  TRPCClientOutgoingMessage,
+  TRPCErrorResponse,
+  TRPCRequest,
+  TRPCResultMessage,
+} from '@trpc/server/rpc';
 
 export type TRPCChromeRequest = {
-  trpc: TRPCRequest;
+  trpc: TRPCRequest | TRPCClientOutgoingMessage;
 };
 
-export type TRPCChromeResultResponse = {
-  trpc: TRPCResultResponse;
+export type TRPCChromeSuccessResponse = {
+  trpc: TRPCResultMessage<any>;
 };
 
 export type TRPCChromeErrorResponse = {
   trpc: TRPCErrorResponse;
 };
 
-export type TRPCChromeResponse = TRPCChromeResultResponse | TRPCChromeErrorResponse;
+export type TRPCChromeResponse = TRPCChromeSuccessResponse | TRPCChromeErrorResponse;

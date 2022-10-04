@@ -13,7 +13,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "removeComments": false,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "importsNotUsedAsValues": "error"
   },
   "include": ["src", "test"]
 }

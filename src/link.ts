@@ -1,129 +1,92 @@
 import { TRPCClientError, TRPCLink } from '@trpc/client';
-// eslint-disable-next-line import/no-unresolved
-import type { ObservableCallbacks } from '@trpc/client/dist/declarations/src/internals/observable';
-import { AnyRouter, ProcedureType } from '@trpc/server';
-import { TRPCErrorResponse, TRPCResult } from '@trpc/server/rpc';
+import type { AnyRouter } from '@trpc/server';
+import { observable } from '@trpc/server/observable';
 
-import { TRPCChromeRequest, TRPCChromeResponse } from './types';
+import type { TRPCChromeRequest, TRPCChromeResponse } from './types';
 
 export type ChromeLinkOptions = {
   port: chrome.runtime.Port;
 };
 
-type PendingRequest<TRouter extends AnyRouter> = {
-  type: ProcedureType;
-  callbacks: ObservableCallbacks<TRPCResult, TRPCClientError<TRouter> | TRPCErrorResponse>;
-};
-
 export const chromeLink = <TRouter extends AnyRouter>(
   opts: ChromeLinkOptions,
 ): TRPCLink<TRouter> => {
-  return () => {
+  return (runtime) => {
     const { port } = opts;
+    return ({ op }) => {
+      return observable((observer) => {
+        const listeners: (() => void)[] = [];
 
-    const pendingRequests: Record<number | string, PendingRequest<TRouter>> = {};
+        const { id, type, path } = op;
 
-    port.onMessage.addListener((message: TRPCChromeResponse) => {
-      const msg = message?.trpc;
-      if (!msg) return;
+        try {
+          const input = runtime.transformer.serialize(op.input);
 
-      const pendingRequest = msg.id !== null && pendingRequests[msg.id];
-      if (!pendingRequest) return;
+          const onDisconnect = () => {
+            // TODO: reconnect?
+            observer.error(new TRPCClientError('Port disconnected prematurely'));
+          };
 
-      if ('error' in msg) {
-        pendingRequest.callbacks.onError?.(msg);
-        return;
-      }
+          port.onDisconnect.addListener(onDisconnect);
+          listeners.push(() => port.onDisconnect.removeListener(onDisconnect));
 
-      pendingRequest.callbacks.onNext?.(msg.result);
+          const onMessage = (message: TRPCChromeResponse) => {
+            if (!('trpc' in message)) return;
+            const { trpc } = message;
+            if (!trpc) return;
+            if (!('id' in trpc) || trpc.id === null || trpc.id === undefined) return;
+            if (id !== trpc.id) return;
 
-      if (msg.result.type === 'stopped') {
-        pendingRequest.callbacks.onDone?.();
-      }
-    });
+            if ('error' in trpc) {
+              const error = runtime.transformer.deserialize(trpc.error);
+              observer.error(TRPCClientError.from({ ...trpc, error }));
+              return;
+            }
 
-    port.onDisconnect.addListener(() => {
-      for (const id of Object.keys(pendingRequests)) {
-        const pendingRequest = pendingRequests[id]!;
-        pendingRequest.callbacks.onError?.(
-          new TRPCClientError('Chrome port closed prematurely', {
-            result: undefined,
-          }),
-        );
+            observer.next({
+              result: {
+                ...trpc.result,
+                ...((!trpc.result.type || trpc.result.type === 'data') && {
+                  type: 'data',
+                  data: runtime.transformer.deserialize(trpc.result.data),
+                }),
+              } as any,
+            });
 
-        if (pendingRequest.type === 'subscription') {
-          delete pendingRequests[id];
-          pendingRequest.callbacks.onDone?.();
-        }
-      }
-    });
+            if (type !== 'subscription' || trpc.result.type === 'stopped') {
+              observer.complete();
+            }
+          };
 
-    return ({ op, prev, onDestroy }) => {
-      const { id, type, path, input } = op;
-      let isDone = false;
+          port.onMessage.addListener(onMessage);
+          listeners.push(() => port.onMessage.removeListener(onMessage));
 
-      const unsubscribe = () => {
-        const callbacks = pendingRequests[id]?.callbacks;
-        delete pendingRequests[id];
-        callbacks?.onDone?.();
-
-        if (type === 'subscription') {
           port.postMessage({
             trpc: {
               id,
               jsonrpc: undefined,
-              method: 'subscription.stop',
-              params: undefined,
+              method: type,
+              params: { path, input },
             },
           } as TRPCChromeRequest);
+        } catch (cause) {
+          observer.error(
+            new TRPCClientError(cause instanceof Error ? cause.message : 'Unknown error'),
+          );
         }
-      };
 
-      pendingRequests[id] = {
-        type,
-        callbacks: {
-          onNext: (result) => {
-            if (isDone) return;
-            prev(result);
-
-            if (type !== 'subscription') {
-              isDone = true;
-              unsubscribe();
-            }
-          },
-          onError: (cause) => {
-            if (isDone) return;
-            const error = cause instanceof Error ? cause : TRPCClientError.from(cause);
-            prev(error);
-          },
-          onDone: () => {
-            if (isDone) return;
-            prev(
-              new TRPCClientError('Operation ended prematurely', {
-                result: undefined,
-                isDone: true,
-              }),
-            );
-            isDone = true;
-          },
-        },
-      };
-
-      port.postMessage({
-        trpc: {
-          id,
-          jsonrpc: undefined,
-          method: type,
-          params: {
-            path,
-            input,
-          },
-        },
-      } as TRPCChromeRequest);
-
-      onDestroy(() => {
-        isDone = true;
-        unsubscribe();
+        return () => {
+          listeners.forEach((unsub) => unsub());
+          if (type === 'subscription') {
+            port.postMessage({
+              trpc: {
+                id,
+                jsonrpc: undefined,
+                method: 'subscription.stop',
+              },
+            } as TRPCChromeRequest);
+          }
+        };
       });
     };
   };

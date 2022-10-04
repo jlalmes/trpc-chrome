@@ -63,12 +63,12 @@ createChromeHandler({ router: appRouter /* 👈 */ });
 
 Peer dependencies:
 
-- [`tRPC`](https://github.com/trpc/trpc) Server v9 (`@trpc/server@^9.23.0`) must be installed.
-- [`tRPC`](https://github.com/trpc/trpc) Client v9 (`@trpc/client@^9.23.0`) must be installed.
+- [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server@next`) must be installed.
+- [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server@next`) must be installed.
 
 ## Example
 
-Please see [full example here](example).
+Please see [full example here](examples/with-plasmo).
 
 _For advanced use-cases, please find examples in our [complete test suite](test)._
 
@@ -91,7 +91,6 @@ Please see [full typings here](src/handler.ts).
 | `router`        | `Router`   | Your application tRPC router.                          | `true`   |
 | `createContext` | `Function` | Passes contextual (`ctx`) data to procedure resolvers. | `false`  |
 | `onError`       | `Function` | Called if error occurs inside handler.                 | `false`  |
-| `teardown`      | `Function` | Called after each request is completed.                | `false`  |
 
 ---
 
@@ -101,4 +100,4 @@ Distributed under the MIT License. See LICENSE for more information.
 
 ## Contact
 
-James Berry - Follow me on Twitter [@jlalmes](https://twitter.com/jlalmes) 💚
+James Berry - Follow me on Twitter [@jlalmes](https://twitter.com/jlalmes) 💙

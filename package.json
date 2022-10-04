@@ -17,9 +17,21 @@
   "bugs": "https://github.com/jlalmes/trpc-chrome/issues",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "exports": {
+    "./link": {
+      "import": "./dist/link.js",
+      "require": "./dist/link.js",
+      "default": "./dist/link.js"
+    },
+    "./adapter": {
+      "import": "./dist/handler.js",
+      "require": "./dist/handler.js",
+      "default": "./dist/handler.js"
+    }
+  },
   "workspaces": [
     ".",
-    "example"
+    "examples/with-plasmo"
   ],
   "scripts": {
     "test": "tsc --noEmit && jest --verbose",

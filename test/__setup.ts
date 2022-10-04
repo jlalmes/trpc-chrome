@@ -21,6 +21,11 @@ const getMockChrome = jest.fn(() => {
             addListener: jest.fn((listener) => {
               handlerPortOnMessageListeners.push(listener);
             }),
+            removeListener: jest.fn(),
+          },
+          onDisconnect: {
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
           },
         };
 
@@ -32,9 +37,11 @@ const getMockChrome = jest.fn(() => {
             addListener: jest.fn((listener) => {
               linkPortOnMessageListeners.push(listener);
             }),
+            removeListener: jest.fn(),
           },
           onDisconnect: {
             addListener: jest.fn(),
+            removeListener: jest.fn(),
           },
         };
 

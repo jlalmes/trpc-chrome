@@ -1,12 +1,12 @@
-import { AnyRouter, Subscription, TRPCError } from '@trpc/server';
+import { AnyProcedure, AnyRouter, ProcedureType, TRPCError } from '@trpc/server';
 // eslint-disable-next-line import/no-unresolved
-import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/declarations/src/adapters/node-http';
+import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/adapters/node-http/types';
 // eslint-disable-next-line import/no-unresolved
-import type { HTTPBaseHandlerOptions } from '@trpc/server/dist/declarations/src/http/internals/types';
-import { TRPCErrorShape, TRPCResult } from '@trpc/server/rpc';
+import type { BaseHandlerOptions } from '@trpc/server/dist/internals/types';
+import { Unsubscribable, isObservable } from '@trpc/server/observable';
 
 import { getErrorFromUnknown } from './errors';
-import { TRPCChromeRequest, TRPCChromeResponse } from './types';
+import type { TRPCChromeRequest, TRPCChromeResponse } from './types';
 
 export type CreateChromeContextOptions = {
   req: chrome.runtime.Port;
@@ -14,104 +14,114 @@ export type CreateChromeContextOptions = {
 };
 
 export type CreateChromeHandlerOptions<TRouter extends AnyRouter> = Pick<
-  HTTPBaseHandlerOptions<TRouter, CreateChromeContextOptions['req']> & {
-    teardown?: () => Promise<void>;
-  } & NodeHTTPCreateContextOption<
+  BaseHandlerOptions<TRouter, CreateChromeContextOptions['req']> &
+    NodeHTTPCreateContextOption<
       TRouter,
       CreateChromeContextOptions['req'],
       CreateChromeContextOptions['res']
     >,
-  'router' | 'createContext' | 'onError' | 'teardown'
+  'router' | 'createContext' | 'onError'
 >;
 
 export const createChromeHandler = <TRouter extends AnyRouter>(
   opts: CreateChromeHandlerOptions<TRouter>,
 ) => {
-  const { router, createContext, onError, teardown } = opts;
+  const { router, createContext, onError } = opts;
+  const { transformer } = router._def;
 
   chrome.runtime.onConnect.addListener((port) => {
-    const subscriptions = new Map<number | string, Subscription>();
+    const subscriptions = new Map<number | string, Unsubscribable>();
+    const listeners: (() => void)[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    port.onMessage.addListener(async (message: TRPCChromeRequest) => {
-      const msg = message?.trpc;
-      if (!msg) return;
+    const onDisconnect = () => {
+      listeners.forEach((unsub) => unsub());
+    };
 
-      const handleRequest = async () => {
-        const sendResponse = (json: { result: TRPCResult } | { error: TRPCErrorShape }) => {
-          return port.postMessage({
-            trpc: {
-              id: msg.id ?? null,
-              jsonrpc: msg.jsonrpc,
-              ...json,
-            },
-          } as TRPCChromeResponse);
-        };
+    port.onDisconnect.addListener(onDisconnect);
+    listeners.push(() => port.onDisconnect.removeListener(onDisconnect));
 
-        let ctx: any;
-        let result: any;
+    const onMessage = async (message: TRPCChromeRequest) => {
+      if (!('trpc' in message)) return;
+      const { trpc } = message;
+      if (!('id' in trpc) || trpc.id === null || trpc.id === undefined) return;
+      if (!trpc) return;
 
-        try {
-          if (typeof msg.id !== 'number' && typeof msg.id !== 'string') {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: '`id` is required',
-            });
-          }
+      const { id, jsonrpc, method } = trpc;
 
-          if (msg.method === 'subscription.stop') {
-            const subscription = subscriptions.get(msg.id);
-            if (subscription) {
-              subscription.destroy();
-            }
-            subscriptions.delete(msg.id);
-            return;
-          }
+      const sendResponse = (response: TRPCChromeResponse['trpc']) => {
+        port.postMessage({
+          trpc: { id, jsonrpc, ...response },
+        } as TRPCChromeResponse);
+      };
 
-          const { path, input } = msg.params;
-          const type = msg.method;
+      let params: { path: string; input: unknown } | undefined;
+      let input: any;
+      let ctx: any;
 
-          ctx = await createContext?.({ req: port, res: undefined });
-          const caller = router.createCaller(ctx);
-          result = await caller[type](path, input as any);
-
-          if (!(result instanceof Subscription)) {
-            return sendResponse({
+      try {
+        if (method === 'subscription.stop') {
+          const subscription = subscriptions.get(id);
+          if (subscription) {
+            subscription.unsubscribe();
+            sendResponse({
               result: {
-                type: 'data',
-                data: result,
+                type: 'stopped',
               },
             });
           }
+          subscriptions.delete(id);
+          return;
+        }
 
-          const subscription = result;
+        params = trpc.params;
 
-          if (subscriptions.has(msg.id)) {
-            subscription.destroy();
-            throw new TRPCError({
-              message: `Duplicate id ${msg.id}`,
-              code: 'BAD_REQUEST',
-            });
-          }
+        input = transformer.input.deserialize(params.input);
 
-          subscriptions.set(msg.id, subscription);
+        ctx = await createContext?.({ req: port, res: undefined });
+        const caller = router.createCaller(ctx);
 
-          subscription.on('data', (data: unknown) => {
+        const segments = params.path.split('.');
+        const procedureFn = segments.reduce(
+          (acc, curr) => acc[curr],
+          caller as any,
+        ) as AnyProcedure;
+
+        const result = await procedureFn(input);
+
+        if (method !== 'subscription') {
+          const data = transformer.output.serialize(result);
+          sendResponse({
+            result: {
+              type: 'data',
+              data,
+            },
+          });
+          return;
+        }
+
+        if (!isObservable(result)) {
+          throw new TRPCError({
+            message: 'Subscription ${params.path} did not return an observable',
+            code: 'INTERNAL_SERVER_ERROR',
+          });
+        }
+
+        const subscription = result.subscribe({
+          next: (data) => {
             sendResponse({
               result: {
                 type: 'data',
                 data,
               },
             });
-          });
-
-          subscription.on('error', (cause: unknown) => {
+          },
+          error: (cause) => {
             const error = getErrorFromUnknown(cause);
 
             onError?.({
               error,
-              type,
-              path,
+              type: method,
+              path: params?.path,
               input,
               ctx,
               req: port,
@@ -120,55 +130,69 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
             sendResponse({
               error: router.getErrorShape({
                 error,
-                type,
-                path,
+                type: method,
+                path: params?.path,
                 input,
                 ctx,
               }),
             });
-          });
-
-          subscription.on('destroy', () => {
+          },
+          complete: () => {
             sendResponse({
               result: {
                 type: 'stopped',
               },
             });
-          });
+          },
+        });
 
+        if (subscriptions.has(id)) {
+          subscription.unsubscribe();
           sendResponse({
             result: {
-              type: 'started',
+              type: 'stopped',
             },
           });
-
-          await subscription.start();
-        } catch (cause) {
-          const error = getErrorFromUnknown(cause);
-
-          onError?.({
-            error,
-            type: (msg.method as any) ?? 'unknown',
-            path: (msg.params as any)?.path,
-            input: (msg.params as any)?.input,
-            ctx,
-            req: port,
-          });
-
-          sendResponse({
-            error: router.getErrorShape({
-              error,
-              type: (msg.method as any) ?? 'unknown',
-              path: (msg.params as any)?.path,
-              input: (msg.params as any)?.input,
-              ctx,
-            }),
+          throw new TRPCError({
+            message: `Duplicate id ${id}`,
+            code: 'BAD_REQUEST',
           });
         }
-      };
+        listeners.push(() => subscription.unsubscribe());
 
-      await handleRequest();
-      await teardown?.();
-    });
+        subscriptions.set(id, subscription);
+
+        sendResponse({
+          result: {
+            type: 'started',
+          },
+        });
+        return;
+      } catch (cause) {
+        const error = getErrorFromUnknown(cause);
+
+        onError?.({
+          error,
+          type: method as ProcedureType,
+          path: params?.path,
+          input,
+          ctx,
+          req: port,
+        });
+
+        sendResponse({
+          error: router.getErrorShape({
+            error,
+            type: method as ProcedureType,
+            path: params?.path,
+            input,
+            ctx,
+          }),
+        });
+      }
+    };
+
+    port.onMessage.addListener(onMessage);
+    listeners.push(() => port.onMessage.removeListener(onMessage));
   });
 };
