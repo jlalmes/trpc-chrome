@@ -1,7 +1,9 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+// @ts-check
+
+/** @type {import('jest').Config} */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
   rootDir: './test',
   globals: {
     'ts-jest': {
@@ -9,4 +11,8 @@ module.exports = {
     },
   },
   setupFiles: ['./setup.ts'],
+  snapshotFormat: {
+    escapeString: true,
+    printBasicPrototype: true,
+  },
 };

@@ -1,12 +1,15 @@
-<p align="left">
-  <a href="/">
-    <img src="./assets/trpc-chrome.svg" alt="tRPC-Chrome" height="100"/>
-  </a>
-</p>
+![trpc-chrome](assets/trpc-chrome-readme.png)
 
-# trpc-chrome 🚧
+<div align="center">
+  <h1>trpc-chrome</h1>
+  <a href="https://www.npmjs.com/package/trpc-chrome"><img src="https://img.shields.io/npm/v/trpc-chrome.svg?style=flat&color=brightgreen" target="_blank" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-black" /></a>
+  <a href="https://trpc.io/discord" target="_blank"><img src="https://img.shields.io/badge/chat-discord-blue.svg" /></a>
+  <br />
+  <hr />
+</div>
 
-### **[Chrome extension](https://developer.chrome.com/docs/extensions/mv3/) adapter for [tRPC](https://trpc.io/)** 🧩
+## **[Chrome extension](https://developer.chrome.com/docs/extensions/mv3/) support for [tRPC](https://trpc.io/)** 🧩
 
 - Easy communication for web extensions.
 - Typesafe messaging between content & background scripts.

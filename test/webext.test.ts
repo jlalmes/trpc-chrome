@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { resetMocks } from './__setup';
+
 import { createTRPCClient } from '@trpc/client';
 import * as trpc from '@trpc/server';
 import { z } from 'zod';
 
 import { chromeLink, createChromeHandler } from '../src';
-import { resetMocks } from './setup';
 
 global.fetch = {} as any;
 
