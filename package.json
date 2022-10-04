@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "test": "tsc --noEmit && jest --verbose",
-    "build": "rimraf dist && tsc -p tsconfig.build.json"
+    "build": "rimraf dist && tsc -p tsconfig.build.json && ts-node frank-dist"
   },
   "peerDependencies": {
     "@trpc/client": "10.0.0-proxy-beta.13",
