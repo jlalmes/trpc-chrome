@@ -70,7 +70,7 @@ _For advanced use-cases, please find examples in our [complete test suite](test)
 
 #### ChromeLinkOptions
 
-Please see [full typings here](src/link.ts).
+Please see [full typings here](src/link/index.ts).
 
 | Property | Type                  | Description                                                      | Required |
 | -------- | --------------------- | ---------------------------------------------------------------- | -------- |
@@ -78,7 +78,7 @@ Please see [full typings here](src/link.ts).
 
 #### CreateChromeHandlerOptions
 
-Please see [full typings here](src/handler.ts).
+Please see [full typings here](src/adapter/index.ts).
 
 | Property        | Type       | Description                                            | Required |
 | --------------- | ---------- | ------------------------------------------------------ | -------- |
