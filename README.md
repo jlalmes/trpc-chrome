@@ -15,12 +15,6 @@
 - Typesafe messaging between content & background scripts.
 - Ready for Manifest V3.
 
-### Roadmap 🚘
-
-- Reconnect on background script reload. (maybe?)
-- Add example with client(content) & handler(background).
-- Add example with vice-versa handler(content) & client(background).
-
 ## Usage
 
 **1. Install `trpc-chrome`.**
