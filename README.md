@@ -37,7 +37,7 @@ yarn add trpc-chrome
 ```typescript
 // content.ts
 import { createTRPCClient } from '@trpc/client';
-import { chromeLink } from 'trpc-chrome';
+import { chromeLink } from 'trpc-chrome/link';
 
 import type { AppRouter } from './appRouter';
 
@@ -52,7 +52,7 @@ export const chromeClient = createTRPCClient<AppRouter>({
 
 ```typescript
 // background.ts
-import { createChromeHandler } from 'trpc-chrome';
+import { createChromeHandler } from 'trpc-chrome/adapter';
 
 import { appRouter } from './appRouter';
 
