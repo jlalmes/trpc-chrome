@@ -27,7 +27,7 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
   opts: CreateChromeHandlerOptions<TRouter>,
 ) => {
   const { router, createContext, onError } = opts;
-  const { transformer } = router._def;
+  const { transformer } = router._def._config;
 
   chrome.runtime.onConnect.addListener((port) => {
     const subscriptions = new Map<number | string, Unsubscribable>();

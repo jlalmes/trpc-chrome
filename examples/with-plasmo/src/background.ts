@@ -1,8 +1,11 @@
 import { initTRPC } from '@trpc/server';
-import { createChromeHandler } from 'trpc-chrome/dist/adapter';
+import { createChromeHandler } from 'trpc-chrome/adapter';
 import { z } from 'zod';
 
-const t = initTRPC.create();
+const t = initTRPC.create({
+  isServer: false,
+  allowOutsideOfServer: true,
+});
 
 const appRouter = t.router({
   openNewTab: t.procedure.input(z.object({ url: z.string().url() })).mutation(async ({ input }) => {
