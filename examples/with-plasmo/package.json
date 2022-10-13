@@ -8,19 +8,19 @@
     "build": "plasmo build"
   },
   "dependencies": {
-    "@trpc/client": "^10.0.0-proxy-beta.13",
-    "@trpc/server": "^10.0.0-proxy-beta.13",
-    "plasmo": "0.55.2",
+    "@trpc/client": "^10.0.0-proxy-beta.18",
+    "@trpc/server": "^10.0.0-proxy-beta.18",
+    "plasmo": "0.56.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
-    "@types/chrome": "0.0.196",
-    "@types/node": "18.7.15",
-    "@types/react": "18.0.18",
+    "@types/chrome": "0.0.197",
+    "@types/node": "18.8.5",
+    "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
-    "typescript": "4.8.2"
+    "typescript": "4.8.4"
   },
   "manifest": {
     "host_permissions": [

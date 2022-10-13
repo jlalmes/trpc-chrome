@@ -1,6 +1,6 @@
 import { createTRPCProxyClient } from '@trpc/client';
 import { useRef, useState } from 'react';
-import { chromeLink } from 'trpc-chrome/dist/link';
+import { chromeLink } from 'trpc-chrome/link';
 
 import type { AppRouter } from './background';
 
