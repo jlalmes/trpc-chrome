@@ -64,7 +64,7 @@ createChromeHandler({ router: appRouter /* 👈 */ });
 Peer dependencies:
 
 - [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server@next`) must be installed.
-- [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server@next`) must be installed.
+- [`tRPC`](https://github.com/trpc/trpc) Client v10 (`@trpc/client@next`) must be installed.
 
 ## Example
 
