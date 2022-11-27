@@ -26,39 +26,50 @@ npm install trpc-chrome
 yarn add trpc-chrome
 ```
 
-**2. Add a `chromeLink` to the client in your content script.**
+**2. Add `createChromeHandler` in your background script.**
+
+```typescript
+// background.ts
+import { initTRPC } from '@trpc/server';
+import { createChromeHandler } from 'trpc-chrome/adapter';
+
+const t = initTRPC.create({
+  isServer: false,
+  allowOutsideOfServer: true,
+});
+
+const appRouter = t.router({
+  // ...procedures
+});
+
+export type AppRouter = typeof appRouter;
+
+createChromeHandler({
+  router: appRouter /* 👈 */,
+});
+```
+
+**3. Add a `chromeLink` to the client in your content script.**
 
 ```typescript
 // content.ts
 import { createTRPCClient } from '@trpc/client';
 import { chromeLink } from 'trpc-chrome/link';
 
-import type { AppRouter } from './appRouter';
+import type { AppRouter } from './background';
 
-const port = chrome.runtime.connect(chrome.runtime.id);
-
+const port = chrome.runtime.connect();
 export const chromeClient = createTRPCClient<AppRouter>({
   links: [/* 👉 */ chromeLink({ port })],
 });
-```
-
-**3. Add `createChromeHandler` in your background script.**
-
-```typescript
-// background.ts
-import { createChromeHandler } from 'trpc-chrome/adapter';
-
-import { appRouter } from './appRouter';
-
-createChromeHandler({ router: appRouter /* 👈 */ });
 ```
 
 ## Requirements
 
 Peer dependencies:
 
-- [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server@next`) must be installed.
-- [`tRPC`](https://github.com/trpc/trpc) Client v10 (`@trpc/client@next`) must be installed.
+- [`tRPC`](https://github.com/trpc/trpc) Server v10 (`@trpc/server`) must be installed.
+- [`tRPC`](https://github.com/trpc/trpc) Client v10 (`@trpc/client`) must be installed.
 
 ## Example
 
