@@ -53,13 +53,13 @@ createChromeHandler({
 
 ```typescript
 // content.ts
-import { createTRPCClient } from '@trpc/client';
+import { createTRPCProxyClient } from '@trpc/client';
 import { chromeLink } from 'trpc-chrome/link';
 
 import type { AppRouter } from './background';
 
 const port = chrome.runtime.connect();
-export const chromeClient = createTRPCClient<AppRouter>({
+export const chromeClient = createTRPCProxyClient<AppRouter>({
   links: [/* 👉 */ chromeLink({ port })],
 });
 ```
