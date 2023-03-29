@@ -70,21 +70,19 @@ export const chromeClient = createTRPCProxyClient<AppRouter>({
 // inpage.ts
 import { createTRPCClient } from '@trpc/client';
 import { windowLink } from 'trpc-chrome/link';
-```
-
-```typescript
-// content.ts
-import { relay } from 'trpc-chrome/relay';
 
 import type { AppRouter } from './background';
 
 export const windowClient = createTRPCProxyClient<AppRouter>({
   links: [/* 👉 */ windowLink({ window })],
 });
+```
+
+```typescript
+// content.ts
+import { relay } from 'trpc-chrome/relay';
 
 const port = chrome.runtime.connect();
-// ...
-
 relay(port, window);
 ```
 
