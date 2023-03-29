@@ -5,6 +5,11 @@
   "author": "James Berry <jb@jamesbe.com>",
   "private": false,
   "license": "MIT",
+  "files": [
+    "types",
+    "adapter",
+    "link"
+  ],
   "keywords": [
     "trpc",
     "chrome",
