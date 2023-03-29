@@ -5,6 +5,13 @@
   "author": "James Berry <jb@jamesbe.com>",
   "private": false,
   "license": "MIT",
+  "files": [
+    "types",
+    "adapter",
+    "link",
+    "relay",
+    "shared"
+  ],
   "keywords": [
     "trpc",
     "chrome",
@@ -21,7 +28,7 @@
   ],
   "scripts": {
     "test": "tsc --noEmit && jest --verbose",
-    "build": "rimraf dist && rimraf adapter && rimraf link && rimraf types && tsc -p tsconfig.build.json && mv dist/* . && rimraf dist"
+    "build": "rimraf dist && rimraf adapter && rimraf link && rimraf types && rimraf relay && rimraf shared && tsc -p tsconfig.build.json && mv dist/* . && rimraf dist"
   },
   "peerDependencies": {
     "@trpc/client": "^10.0.0",

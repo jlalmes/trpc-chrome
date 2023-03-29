@@ -5,6 +5,7 @@ import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/adapters/nod
 import type { BaseHandlerOptions } from '@trpc/server/dist/internals/types';
 import { Unsubscribable, isObservable } from '@trpc/server/observable';
 
+import { isTRPCRequest, isTRPCRequestWithId } from '../shared/trpcMessage';
 import type { TRPCChromeRequest, TRPCChromeResponse } from '../types';
 import { getErrorFromUnknown } from './errors';
 
@@ -40,11 +41,9 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
     port.onDisconnect.addListener(onDisconnect);
     listeners.push(() => port.onDisconnect.removeListener(onDisconnect));
 
-    const onMessage = async (message: TRPCChromeRequest) => {
-      if (!('trpc' in message)) return;
+    const onMessage = async (message: unknown) => {
+      if (!isTRPCRequestWithId(message)) return;
       const { trpc } = message;
-      if (!('id' in trpc) || trpc.id === null || trpc.id === undefined) return;
-      if (!trpc) return;
 
       const { id, jsonrpc, method } = trpc;
 
