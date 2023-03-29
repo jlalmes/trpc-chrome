@@ -12,7 +12,7 @@
 ## **[Chrome extension](https://developer.chrome.com/docs/extensions/mv3/) support for [tRPC](https://trpc.io/)** 🧩
 
 - Easy communication for web extensions.
-- Typesafe messaging between content & background scripts.
+- Typesafe messaging between window, content & background scripts.
 - Ready for Manifest V3.
 
 ## Usage
@@ -59,9 +59,33 @@ import { chromeLink } from 'trpc-chrome/link';
 import type { AppRouter } from './background';
 
 const port = chrome.runtime.connect();
-export const chromeClient = createTRPCClient<AppRouter>({
+export const chromeClient = createTRPCProxyClient<AppRouter>({
   links: [/* 👉 */ chromeLink({ port })],
 });
+```
+
+**4. `(extra)` If you have an injected window script, hook it up too!.**
+
+```typescript
+// inpage.ts
+import { createTRPCClient } from '@trpc/client';
+import { windowLink } from 'trpc-chrome/link';
+```
+
+```typescript
+// content.ts
+import { relay } from 'trpc-chrome/relay';
+
+import type { AppRouter } from './background';
+
+export const windowClient = createTRPCProxyClient<AppRouter>({
+  links: [/* 👉 */ windowLink({ window })],
+});
+
+const port = chrome.runtime.connect();
+// ...
+
+relay(port, window);
 ```
 
 ## Requirements
@@ -81,11 +105,19 @@ _For advanced use-cases, please find examples in our [complete test suite](test)
 
 #### ChromeLinkOptions
 
-Please see [full typings here](src/link/index.ts).
+Please see [full typings here](src/link/chrome.ts).
 
 | Property | Type                  | Description                                                      | Required |
 | -------- | --------------------- | ---------------------------------------------------------------- | -------- |
 | `port`   | `chrome.runtime.Port` | An open web extension port between content & background scripts. | `true`   |
+
+### WindowLinkOptions
+
+Please see [full typings here](src/link/window.ts).
+
+| Property | Type     | Description                                     | Required |
+| -------- | -------- | ----------------------------------------------- | -------- |
+| `window` | `Window` | A window object which is listened to by a relay | `true`   |
 
 #### CreateChromeHandlerOptions
 

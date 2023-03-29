@@ -18,3 +18,11 @@ export type TRPCChromeErrorResponse = {
 };
 
 export type TRPCChromeResponse = TRPCChromeSuccessResponse | TRPCChromeErrorResponse;
+
+export type TRPCChromeMessage = TRPCChromeRequest | TRPCChromeResponse;
+export type RelayedTRPCMessage = TRPCChromeMessage & { relayed?: true };
+
+export type MinimalWindow = Pick<
+  Window,
+  'postMessage' | 'addEventListener' | 'removeEventListener'
+>;
