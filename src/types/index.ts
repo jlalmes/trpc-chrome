@@ -26,3 +26,7 @@ export type MinimalWindow = Pick<
   Window,
   'postMessage' | 'addEventListener' | 'removeEventListener'
 >;
+
+export type MinimalPopupWindow = MinimalWindow & {
+  closed: boolean;
+};

@@ -24,7 +24,7 @@ describe('relay', () => {
   test('validate test data', () => {
     expect(isTRPCMessage(mockMessage)).toBe(true);
   });
-  test('relays messages between window to port', async () => {
+  test('relays messages between window to port', () => {
     const port = chrome.runtime.connect();
     // @ts-expect-error handler port is just available in tests
     const handlerPort: chrome.runtime.Port = chrome.__handlerPort;

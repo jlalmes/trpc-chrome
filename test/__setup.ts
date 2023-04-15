@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import type { MinimalWindow } from '../src/types';
+import type { MinimalPopupWindow, MinimalWindow } from '../src/types';
 
 type OnMessageListener = (message: any) => void;
 type OnConnectListener = (port: any) => void;
@@ -79,11 +79,17 @@ export const resetMocks = () => {
 
 resetMocks();
 
-export const getMockWindow = (): MinimalWindow => {
+export const getMockWindow = (postTo?: MinimalWindow): MinimalPopupWindow => {
   const listeners: ((event: MessageEvent) => void)[] = [];
 
   return {
+    closed: false,
     addEventListener: jest.fn((event, listener: EventListener) => {
+      if (event === 'load') {
+        setTimeout(() => {
+          listener({} as any);
+        }, 100);
+      }
       if (event !== 'message') return;
       listeners.push(listener);
     }),
@@ -95,7 +101,8 @@ export const getMockWindow = (): MinimalWindow => {
       }
     }),
     postMessage: jest.fn((message) => {
-      listeners.forEach((listener) => listener({ data: message } as any));
+      listeners.forEach((listener) => listener({ data: message } as MessageEvent));
+      postTo?.postMessage(message);
     }),
   };
 };
