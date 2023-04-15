@@ -6,6 +6,7 @@ import { createBaseLink } from './internal/base';
 
 export type WindowLinkOptions = {
   window: MinimalWindow;
+  postWindow?: MinimalWindow;
 };
 
 export const windowLink = <TRouter extends AnyRouter>(
@@ -16,28 +17,31 @@ export const windowLink = <TRouter extends AnyRouter>(
     (ev: MessageEvent<TRPCChromeMessage>) => void
   >();
 
+  const listenWindow = opts.window;
+  const postWindow = opts.postWindow ?? listenWindow;
+
   return createBaseLink({
     postMessage(message) {
-      opts.window.postMessage(message, '*');
+      postWindow.postMessage(message, '*');
     },
     addMessageListener(listener) {
       const handler = (ev: MessageEvent<TRPCChromeMessage>) => {
         listener(ev.data);
       };
       handlerMap.set(listener, handler);
-      opts.window.addEventListener('message', handler);
+      listenWindow.addEventListener('message', handler);
     },
     removeMessageListener(listener) {
       const handler = handlerMap.get(listener);
       if (handler) {
-        opts.window.removeEventListener('message', handler);
+        listenWindow.removeEventListener('message', handler);
       }
     },
     addCloseListener(listener) {
-      opts.window.addEventListener('beforeunload', listener);
+      listenWindow.addEventListener('beforeunload', listener);
     },
     removeCloseListener(listener) {
-      opts.window.removeEventListener('beforeunload', listener);
+      listenWindow.removeEventListener('beforeunload', listener);
     },
   });
 };

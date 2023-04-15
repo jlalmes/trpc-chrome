@@ -1,5 +1,5 @@
 {
-  "name": "trpc-extension",
+  "name": "trpc-chrome",
   "version": "1.1.0",
   "description": "tRPC adapter for Web Extensions, fork with more features",
   "author": "Janek Rahrt <janek.rahrt@me.com>, James Berry <jb@jamesbe.com>",

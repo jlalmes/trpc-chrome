@@ -45,7 +45,19 @@ export type CreateWindowHandlerOptions<TRouter extends AnyRouter> = Pick<
 export const createWindowHandler = <TRouter extends AnyRouter>(
   opts: CreateWindowHandlerOptions<TRouter>,
 ) => {
-  const { router, createContext, onError, listenWindow = global.window } = opts;
+  const {
+    router,
+    createContext,
+    onError,
+    // make this ssr save
+    listenWindow = typeof window !== 'undefined' ? global.window : undefined,
+  } = opts;
+
+  if (!listenWindow) {
+    console.warn("[SSR] skip creating window handler as 'listenWindow' is not defined");
+    return;
+  }
+
   const { transformer } = router._def._config;
 
   const subscriptions = new Map<number | string, Unsubscribable>();
