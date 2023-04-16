@@ -1,5 +1,5 @@
 name: Test
-on: [push]
+on: [push, pull_request]
 jobs: 
   test:
     runs-on: ubuntu-latest
@@ -17,3 +17,6 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Build
+        run: npm run build
