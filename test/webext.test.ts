@@ -1,4 +1,4 @@
-import { getMockWindow, resetMocks } from './__setup';
+import { MockChrome, getMockChrome, getMockWindow } from './__setup';
 
 import { TRPCLink, createTRPCProxyClient } from '@trpc/client';
 import { AnyRouter, initTRPC } from '@trpc/server';
@@ -8,10 +8,6 @@ import { z } from 'zod';
 import { createChromeHandler } from '../src/adapter';
 import { chromeLink, windowLink } from '../src/link';
 import { relay } from '../src/relay';
-
-afterEach(() => {
-  resetMocks();
-});
 
 const t = initTRPC.create();
 
@@ -39,7 +35,10 @@ const appRouter = t.router({
 });
 
 type LinkName = 'chrome' | 'window';
-function createLink(type: LinkName): { link: TRPCLink<AnyRouter>; cleanup?: () => void } {
+function createLink(
+  type: LinkName,
+  chrome: MockChrome,
+): { link: TRPCLink<AnyRouter>; cleanup?: () => void } {
   switch (type) {
     case 'chrome': {
       const port = chrome.runtime.connect();
@@ -62,11 +61,12 @@ const testCases: Array<{ linkName: LinkName }> = [{ linkName: 'chrome' }, { link
 describe.each(testCases)('with $linkName link', ({ linkName }) => {
   test('with query', async () => {
     // background
-    createChromeHandler({ router: appRouter });
+    const chrome = getMockChrome();
+    createChromeHandler({ router: appRouter, chrome });
     expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
 
     // content
-    const { link, cleanup } = createLink(linkName);
+    const { link, cleanup } = createLink(linkName, chrome);
     const trpc = createTRPCProxyClient<typeof appRouter>({
       links: [link],
     });
@@ -89,11 +89,12 @@ describe.each(testCases)('with $linkName link', ({ linkName }) => {
 
   test('with mutation', async () => {
     // background
-    createChromeHandler({ router: appRouter });
+    const chrome = getMockChrome();
+    createChromeHandler({ router: appRouter, chrome });
     expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
 
     // content
-    const { link, cleanup } = createLink(linkName);
+    const { link, cleanup } = createLink(linkName, chrome);
     const trpc = createTRPCProxyClient<typeof appRouter>({
       links: [link],
     });
@@ -116,11 +117,12 @@ describe.each(testCases)('with $linkName link', ({ linkName }) => {
 
   test('with subscription', async () => {
     // background
-    createChromeHandler({ router: appRouter });
+    const chrome = getMockChrome();
+    createChromeHandler({ router: appRouter, chrome });
     expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
 
     // content
-    const { link, cleanup } = createLink(linkName);
+    const { link, cleanup } = createLink(linkName, chrome);
     const trpc = createTRPCProxyClient<typeof appRouter>({
       links: [link],
     });

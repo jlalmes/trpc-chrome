@@ -1,8 +1,8 @@
-# [**`trpc-chrome`**](../../README.md) (on-web)
+# [**`trpc-browser`**](../../README.md) (on-web)
 
 ### Getting started
 
-Make sure your current working directory is at `/trpc-chrome` root.
+Make sure your current working directory is at `/trpc-browser` root.
 
 ```bash
 npm install

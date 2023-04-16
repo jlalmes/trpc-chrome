@@ -1,12 +1,8 @@
-import { getMockWindow, resetMocks } from './__setup';
+import { getMockChrome, getMockWindow } from './__setup';
 
 import { relay } from '../src/relay';
 import { isTRPCMessage } from '../src/shared/trpcMessage';
 import type { TRPCChromeMessage } from '../src/types';
-
-afterEach(() => {
-  resetMocks();
-});
 
 const mockMessage: TRPCChromeMessage = {
   trpc: {
@@ -25,9 +21,9 @@ describe('relay', () => {
     expect(isTRPCMessage(mockMessage)).toBe(true);
   });
   test('relays messages between window to port', () => {
+    const chrome = getMockChrome();
     const port = chrome.runtime.connect();
-    // @ts-expect-error handler port is just available in tests
-    const handlerPort: chrome.runtime.Port = chrome.__handlerPort;
+    const handlerPort = chrome.__handlerPort; // only in mock chrome
     const window = getMockWindow();
     const cleanup = relay(window, port);
 

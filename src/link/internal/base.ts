@@ -3,18 +3,10 @@ import type { AnyRouter } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
 
 import { isTRPCResponse } from '../../shared/trpcMessage';
-import type { TRPCChromeMessage, TRPCChromeRequest } from '../../types';
-
-interface LinkMethods {
-  postMessage: (message: TRPCChromeMessage) => void;
-  addMessageListener: (listener: (message: TRPCChromeMessage) => void) => void;
-  removeMessageListener: (listener: (message: TRPCChromeMessage) => void) => void;
-  addCloseListener: (listener: () => void) => void;
-  removeCloseListener: (listener: () => void) => void;
-}
+import type { MessengerMethods, TRPCChromeRequest } from '../../types';
 
 export const createBaseLink = <TRouter extends AnyRouter>(
-  methods: LinkMethods,
+  methods: MessengerMethods,
 ): TRPCLink<TRouter> => {
   return (runtime) => {
     return ({ op }) => {

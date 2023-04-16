@@ -1,4 +1,4 @@
-import { getMockWindow, resetMocks } from './__setup';
+import { getMockWindow } from './__setup';
 
 import { TRPCLink, createTRPCProxyClient } from '@trpc/client';
 import { AnyRouter, initTRPC } from '@trpc/server';
@@ -8,10 +8,6 @@ import { z } from 'zod';
 import { createWindowHandler } from '../src/adapter';
 import { popupLink, windowLink } from '../src/link';
 import { MinimalWindow } from '../src/types';
-
-afterEach(() => {
-  resetMocks();
-});
 
 const t = initTRPC.create();
 
@@ -75,7 +71,7 @@ describe.each(testCases)('with $linkName link', ({ linkName }) => {
     });
 
     // background
-    createWindowHandler({ router: appRouter, listenWindow, postWindow });
+    createWindowHandler({ router: appRouter, window: listenWindow, postWindow });
 
     const data1 = await trpc.echoQuery.query({ payload: 'query1' });
     expect(data1).toEqual({ payload: 'query1' });
@@ -98,7 +94,7 @@ describe.each(testCases)('with $linkName link', ({ linkName }) => {
     });
 
     // background
-    createWindowHandler({ router: appRouter, listenWindow, postWindow });
+    createWindowHandler({ router: appRouter, window: listenWindow, postWindow });
 
     const data1 = await trpc.echoMutation.mutate({ payload: 'mutation1' });
     expect(data1).toEqual({ payload: 'mutation1' });
@@ -121,7 +117,7 @@ describe.each(testCases)('with $linkName link', ({ linkName }) => {
     });
 
     // background
-    createWindowHandler({ router: appRouter, listenWindow, postWindow });
+    createWindowHandler({ router: appRouter, window: listenWindow, postWindow });
 
     const onDataMock = jest.fn();
     const onCompleteMock = jest.fn();

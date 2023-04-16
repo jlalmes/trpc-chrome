@@ -8,7 +8,12 @@ import type { MinimalPopupWindow, MinimalWindow } from '../src/types';
 type OnMessageListener = (message: any) => void;
 type OnConnectListener = (port: any) => void;
 
-const getMockChrome = jest.fn(() => {
+type ChromeType = typeof chrome;
+export interface MockChrome extends ChromeType {
+  __handlerPort: chrome.runtime.Port;
+}
+
+export const getMockChrome: () => MockChrome = jest.fn(() => {
   const linkPortOnMessageListeners: OnMessageListener[] = [];
   const handlerPortOnMessageListeners: OnMessageListener[] = [];
   const handlerPortOnConnectListeners: OnConnectListener[] = [];
@@ -69,15 +74,8 @@ const getMockChrome = jest.fn(() => {
         }),
       },
     },
-  };
+  } as any;
 });
-
-export const resetMocks = () => {
-  // @ts-expect-error mocking chrome
-  global.chrome = getMockChrome();
-};
-
-resetMocks();
 
 export const getMockWindow = (postTo?: MinimalWindow): MinimalPopupWindow => {
   const listeners: ((event: MessageEvent) => void)[] = [];

@@ -1,7 +1,7 @@
 {
-  "name": "trpc-chrome",
+  "name": "trpc-browser",
   "version": "1.1.0",
-  "description": "tRPC adapter for Web Extensions, fork with more features",
+  "description": "tRPC adapters and links for everywhere in the browser",
   "author": "Janek Rahrt <janek.rahrt@me.com>, James Berry <jb@jamesbe.com>",
   "private": false,
   "license": "MIT",
@@ -17,11 +17,15 @@
     "chrome",
     "extension",
     "webext",
-    "webextension"
+    "webextension",
+    "web",
+    "iframe",
+    "popup",
+    "browser"
   ],
-  "homepage": "https://github.com/janek26/trpc-chrome",
-  "repository": "github:janek26/trpc-chrome",
-  "bugs": "https://github.com/janek26/trpc-chrome/issues",
+  "homepage": "https://github.com/janek26/trpc-browser",
+  "repository": "github:janek26/trpc-browser",
+  "bugs": "https://github.com/janek26/trpc-browser/issues",
   "workspaces": [
     ".",
     "examples/with-plasmo"

@@ -30,3 +30,11 @@ export type MinimalWindow = Pick<
 export type MinimalPopupWindow = MinimalWindow & {
   closed: boolean;
 };
+
+export interface MessengerMethods {
+  postMessage: (message: TRPCChromeMessage) => void;
+  addMessageListener: (listener: (message: TRPCChromeMessage) => void) => void;
+  removeMessageListener: (listener: (message: TRPCChromeMessage) => void) => void;
+  addCloseListener: (listener: () => void) => void;
+  removeCloseListener: (listener: () => void) => void;
+}

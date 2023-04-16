@@ -1,7 +1,7 @@
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-24">
-      <h1 className="text-6xl font-bold">Welcome to trpc-chrome!</h1>
+      <h1 className="text-6xl font-bold">Welcome to trpc-browser!</h1>
       {/* 2 big button links which go to either the "iframe example" or the "popup example" */}
       <div className="flex space-x-4">
         <a
