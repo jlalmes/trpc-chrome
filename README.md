@@ -19,12 +19,20 @@
 
 ## 📖 Table of contents
 
+- [**🌐 tRPC for everything in the browser**](#-trpc-for-everything-in-the-browser)
+- [📖 Table of contents](#-table-of-contents)
 - [📦 Installation](#-installation)
 - [🧩 Example usage for extensions](#-example-usage-for-extensions)
 - [🕸️ Example usage for windows](#️-example-usage-for-windows)
 - [📔 Requirements](#-requirements)
 - [📝 Example](#-example)
 - [🆎 Types](#-types)
+  - [ChromeLinkOptions](#chromelinkoptions)
+  - [WindowLinkOptions](#windowlinkoptions)
+  - [PopupLinkOptions](#popuplinkoptions)
+  - [CreateChromeHandlerOptions](#createchromehandleroptions)
+  - [CreateWindowHandlerOptions](#createwindowhandleroptions)
+- [Cross-origin support](#cross-origin-support)
 - [©️ License](#️-license)
 - [🛎️ Contact](#️-contact)
 
@@ -186,18 +194,21 @@ Please see [full typings here](src/link/chrome.ts).
 
 Please see [full typings here](src/link/window.ts).
 
-| Property | Type     | Description                                     | Required |
-| -------- | -------- | ----------------------------------------------- | -------- |
-| `window` | `Window` | A window object which is listened to by a relay | `true`   |
+| Property     | Type     | Description                                               | Required |
+| ------------ | -------- | --------------------------------------------------------- | -------- |
+| `window`     | `Window` | A window object which is listened to                      | `true`   |
+| `postWindow` | `Window` | A window object which is posted to (defaults to `window`) | `false`  |
+| `postOrigin` | `string` | The targetOrigin passed to `opts.postWindow.postMessage`  | `false`  |
 
 ### PopupLinkOptions
 
 Please see [full typings here](src/link/popup.ts).
 
-| Property       | Type       | Description                                     | Required |
-| -------------- | ---------- | ----------------------------------------------- | -------- |
-| `listenWindow` | `Window`   | A window object which is listened to by a relay | `true`   |
-| `createPopup`  | `Function` | A function that returns a window object.        | `true`   |
+| Property       | Type       | Description                                    | Required |
+| -------------- | ---------- | ---------------------------------------------- | -------- |
+| `listenWindow` | `Window`   | A window object which is listened to           | `true`   |
+| `createPopup`  | `Function` | A function that returns a window object.       | `true`   |
+| `postOrigin`   | `string`   | The targetOrigin passed to `popup.postMessage` | `false`  |
 
 ### CreateChromeHandlerOptions
 
@@ -214,15 +225,20 @@ Please see [full typings here](src/adapter/chrome.ts).
 
 Please see [full typings here](src/adapter/window.ts).
 
-| Property        | Type       | Description                                                                                        | Required |
-| --------------- | ---------- | -------------------------------------------------------------------------------------------------- | -------- |
-| `router`        | `Router`   | Your application tRPC router.                                                                      | `true`   |
-| `createContext` | `Function` | Passes contextual (`ctx`) data to procedure resolvers.                                             | `false`  |
-| `onError`       | `Function` | Called if error occurs inside handler.                                                             | `false`  |
-| `window`        | `Window`   | Window object to subscribe to                                                                      | `true`   |
-| `postWindow`    | `Window`   | Window object to post messages to. (default: `MessageEvent.source` with fallback to `opts.window`) | `false`  |
+| Property        | Type       | Description                                                                                                                                                                         | Required |
+| --------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `router`        | `Router`   | Your application tRPC router.                                                                                                                                                       | `true`   |
+| `createContext` | `Function` | Passes contextual (`ctx`) data to procedure resolvers.                                                                                                                              | `false`  |
+| `onError`       | `Function` | Called if error occurs inside handler.                                                                                                                                              | `false`  |
+| `window`        | `Window`   | Window object to subscribe to                                                                                                                                                       | `true`   |
+| `postWindow`    | `Window`   | Window object to post messages to. (default: `MessageEvent.source` with fallback to `opts.window`)                                                                                  | `false`  |
+| `postOrigin`    | `string`   | The targetOrigin passed to `opts.postWindow.postMessage`. If you want to answer to all messages from all origins you should pass `'*'`, by default it will only work on same origin | `false`  |
 
 ---
+
+## Cross-origin support
+
+When posting from a link you can specify the `postOrigin` option. This will be passed to `postMessage` as the `targetOrigin` argument. If you want to answer to all messages from all origins you should pass `'*'`, by default it will only work on same origin.
 
 ## ©️ License
 

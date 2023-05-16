@@ -57,5 +57,9 @@ const appRouter = t.router({
 export type AppRouter = typeof appRouter;
 
 if (typeof window !== 'undefined') {
-  createWindowHandler({ router: appRouter, window: window, postOrigin: '*' });
+  createWindowHandler({
+    router: appRouter,
+    window: window,
+    postOrigin: '*', // answer to all origins
+  });
 }
