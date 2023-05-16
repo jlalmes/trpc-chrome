@@ -4,18 +4,21 @@ import { popupLink } from '../../../link/popup';
 import { windowLink } from '../../../link/window';
 import type { AppRouter } from './trpcListener';
 
+const REMOTE_ORIGIN = process.env.NEXT_PUBLIC_REMOTE_ORIGIN;
+
 export function getTrpcClientIframe(iframe: Window) {
   return createTRPCProxyClient<AppRouter>({
     links: [
       windowLink({
         window: window,
         postWindow: iframe,
+        postOrigin: REMOTE_ORIGIN,
       }),
     ],
   });
 }
 
-export const popupUrl = `${process.env.NEXT_PUBLIC_REMOTE_ORIGIN || ''}/example/popup/popup`;
+export const popupUrl = `${REMOTE_ORIGIN || ''}/example/popup/popup`;
 
 export function getTrpcClientPopup() {
   return createTRPCProxyClient<AppRouter>({
@@ -29,6 +32,7 @@ export function getTrpcClientPopup() {
           }
           return w;
         },
+        postOrigin: REMOTE_ORIGIN,
       }),
     ],
   });
