@@ -15,13 +15,15 @@ export function getTrpcClientIframe(iframe: Window) {
   });
 }
 
+export const popupUrl = `${process.env.NEXT_PUBLIC_REMOTE_ORIGIN || ''}/example/popup/popup`;
+
 export function getTrpcClientPopup() {
   return createTRPCProxyClient<AppRouter>({
     links: [
       popupLink({
         listenWindow: window,
         createPopup: () => {
-          const w = window.open('/example/popup/popup', 'popup', 'width=680,height=520');
+          const w = window.open(popupUrl, 'popup', 'width=680,height=520');
           if (!w) {
             throw new Error('Could not open popup');
           }

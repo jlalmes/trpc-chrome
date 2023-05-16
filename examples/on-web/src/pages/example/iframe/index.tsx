@@ -3,12 +3,17 @@ import { useRef } from 'react';
 import RequestResponseList, { useMessagesStore } from '../../../components/MessageList';
 import { getTrpcClientIframe } from '../../../trpcClient';
 
+const iframeUrl = `${process.env.NEXT_PUBLIC_REMOTE_ORIGIN || ''}/example/iframe/embedded`;
+
 export default function Popup() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-24">
-      <h1 className="text-6xl font-bold">Welcome to the iframe example</h1>
+      <div className="flex flex-col space-y-4">
+        <h1 className="text-6xl font-bold">Welcome to the iframe example</h1>
+        <code className="text-gray-500 text-center">{iframeUrl}</code>
+      </div>
 
       {/* 1 big button "send request" */}
       <button
@@ -55,7 +60,7 @@ export default function Popup() {
 
         {/* styled iframe container */}
         <div className="shadow-md rounded-md p-4 h-64 w-full overflow-y-auto border-2 border-gray-200">
-          <iframe ref={iframeRef} src="/example/iframe/embedded" className="w-full h-full" />
+          <iframe ref={iframeRef} src={iframeUrl} className="w-full h-full" />
         </div>
       </div>
     </main>

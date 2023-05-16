@@ -37,9 +37,12 @@ export const createWindowHandler = <TRouter extends AnyRouter>(
 
     const { trpc } = message;
     const sendResponse = (response: TRPCChromeResponse['trpc']) => {
-      postWindow.postMessage({
-        trpc: { id: trpc.id, jsonrpc: trpc.jsonrpc, ...response },
-      } as TRPCChromeResponse);
+      postWindow.postMessage(
+        {
+          trpc: { id: trpc.id, jsonrpc: trpc.jsonrpc, ...response },
+        } as TRPCChromeResponse,
+        { targetOrigin: '*' },
+      );
     };
 
     if (trpc.method === 'subscription.stop') {

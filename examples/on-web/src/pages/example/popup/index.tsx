@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 
 import RequestResponseList, { useMessagesStore } from '../../../components/MessageList';
-import { getTrpcClientPopup } from '../../../trpcClient';
+import { getTrpcClientPopup, popupUrl } from '../../../trpcClient';
 
 export default function Popup() {
   const tRef = useRef<ReturnType<typeof getTrpcClientPopup>>();
 
   return (
     <main className="flex min-h-screen flex-col items-center p-24 gap-24">
-      <h1 className="text-6xl font-bold">Welcome to the popup example</h1>
+      <div className="flex flex-col space-y-4">
+        <h1 className="text-6xl font-bold">Welcome to the popup example</h1>
+        <code className="text-gray-500 text-center">{popupUrl}</code>
+      </div>
 
       {/* 1 big button "send request" */}
       <button
