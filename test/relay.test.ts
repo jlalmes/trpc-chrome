@@ -47,10 +47,13 @@ describe('relay', () => {
     handlerPort.postMessage(mockMessage);
 
     expect(window.postMessage).toHaveBeenCalledTimes(2);
-    expect(window.postMessage).toHaveBeenCalledWith({
-      ...mockMessage,
-      relayed: true,
-    });
+    expect(window.postMessage).toHaveBeenCalledWith(
+      {
+        ...mockMessage,
+        relayed: true,
+      },
+      { targetOrigin: undefined },
+    );
 
     cleanup();
 

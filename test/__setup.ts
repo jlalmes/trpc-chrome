@@ -77,7 +77,7 @@ export const getMockChrome: () => MockChrome = jest.fn(() => {
   } as any;
 });
 
-export const getMockWindow = (postTo?: MinimalWindow): MinimalPopupWindow => {
+export const getMockWindow = (postTo?: MinimalWindow): MinimalPopupWindow & MinimalWindow => {
   const listeners: ((event: MessageEvent) => void)[] = [];
 
   return {

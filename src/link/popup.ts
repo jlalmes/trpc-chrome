@@ -7,6 +7,7 @@ import { createBaseLink } from './internal/base';
 export type PopupLinkOptions = {
   createPopup: () => MinimalPopupWindow;
   listenWindow: MinimalWindow;
+  postOrigin?: string;
 };
 
 export const popupLink = <TRouter extends AnyRouter>(opts: PopupLinkOptions): TRPCLink<TRouter> => {
@@ -14,54 +15,54 @@ export const popupLink = <TRouter extends AnyRouter>(opts: PopupLinkOptions): TR
     (message: TRPCChromeMessage) => void,
     (ev: MessageEvent<TRPCChromeMessage>) => void
   >();
-  const popupHandlerMap = new Map<'beforeunload', (ev: BeforeUnloadEvent) => void>();
+  const closeHandlerSet = new Set<() => void>();
 
   let popupWindow: MinimalPopupWindow | null = null;
-  function attachHandlerMap() {
-    if (!popupWindow) {
-      return;
-    }
-    for (const [event, handler] of popupHandlerMap) {
-      popupWindow.addEventListener(event, handler);
-    }
-  }
-  function detachHandlerMap() {
-    if (!popupWindow) {
-      return;
-    }
-    for (const [event, handler] of popupHandlerMap) {
-      popupWindow.removeEventListener(event, handler);
-    }
-  }
   async function getPopup() {
     if (!popupWindow || popupWindow.closed) {
       popupWindow = opts.createPopup();
       // wait til window is loaded
-      await new Promise((resolve) => {
-        popupWindow?.addEventListener('load', resolve);
-      });
-
-      // subscribe to close events
-      attachHandlerMap();
+      await Promise.race([
+        new Promise((resolve) => {
+          popupWindow?.addEventListener?.('load', resolve);
+        }),
+        // expect the popup to load within 2.5s, this is needed for cross-origin popups as they don't have a load event
+        new Promise((resolve) => {
+          setTimeout(resolve, 2500);
+        }),
+      ]);
 
       // subscribe to popup closing
-      popupWindow.addEventListener('beforeunload', () => {
-        popupWindow = null;
-      });
+      try {
+        if (!popupWindow.addEventListener) {
+          throw new Error('popupWindow.addEventListener is not a function');
+        }
+        popupWindow.addEventListener('beforeunload', () => {
+          popupWindow = null;
+        });
+      } catch {
+        // this throws on cross-origin popups, fallback to polling to check if popup is closed
+        const pid = setInterval(() => {
+          if (popupWindow && popupWindow.closed) {
+            popupWindow = null;
+            closeHandlerSet.forEach((handler) => {
+              handler();
+            });
+            clearInterval(pid);
+          }
+        }, 1000);
+      }
     }
+
     return popupWindow;
   }
 
   return createBaseLink({
-    postMessage(message) {
-      return getPopup().then(
-        (popup) => {
-          return popup.postMessage(message, '*');
-        },
-        () => {
-          throw new Error('Could not open popup');
-        },
-      );
+    async postMessage(message) {
+      const popup = await getPopup();
+      return popup.postMessage(message, {
+        targetOrigin: opts.postOrigin,
+      });
     },
     addMessageListener(listener) {
       const handler = (ev: MessageEvent<TRPCChromeMessage>) => {
@@ -78,13 +79,11 @@ export const popupLink = <TRouter extends AnyRouter>(opts: PopupLinkOptions): TR
     },
     addCloseListener(listener) {
       opts.listenWindow.addEventListener('beforeunload', listener);
-      popupHandlerMap.set('beforeunload', listener);
-      attachHandlerMap();
+      closeHandlerSet.add(listener);
     },
     removeCloseListener(listener) {
       opts.listenWindow.removeEventListener('beforeunload', listener);
-      popupHandlerMap.delete('beforeunload');
-      detachHandlerMap();
+      closeHandlerSet.delete(listener);
     },
   });
 };

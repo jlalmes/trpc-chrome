@@ -27,9 +27,9 @@ export type MinimalWindow = Pick<
   'postMessage' | 'addEventListener' | 'removeEventListener'
 >;
 
-export type MinimalPopupWindow = MinimalWindow & {
-  closed: boolean;
-};
+export type MinimalPopupWindow = Pick<Window, 'postMessage' | 'closed'> &
+  // addEventListener/removeEventListener are only available on the same origin
+  Partial<Pick<Window, 'addEventListener' | 'removeEventListener'>>;
 
 export interface MessengerMethods {
   postMessage: (message: TRPCChromeMessage) => void;

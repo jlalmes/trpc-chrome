@@ -7,6 +7,7 @@ import { createBaseLink } from './internal/base';
 export type WindowLinkOptions = {
   window: MinimalWindow;
   postWindow?: MinimalWindow;
+  postOrigin?: string;
 };
 
 export const windowLink = <TRouter extends AnyRouter>(
@@ -22,7 +23,9 @@ export const windowLink = <TRouter extends AnyRouter>(
 
   return createBaseLink({
     postMessage(message) {
-      postWindow.postMessage(message, '*');
+      postWindow.postMessage(message, {
+        targetOrigin: opts.postOrigin,
+      });
     },
     addMessageListener(listener) {
       const handler = (ev: MessageEvent<TRPCChromeMessage>) => {

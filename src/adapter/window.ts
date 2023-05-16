@@ -9,13 +9,14 @@ import { getErrorFromUnknown } from './errors';
 type WindowOptions = {
   window: MinimalWindow;
   postWindow?: MinimalWindow;
+  postOrigin?: string;
 };
 type WindowContextOptions = { req: { origin: string }; res: undefined };
 
 export const createWindowHandler = <TRouter extends AnyRouter>(
   opts: CreateHandlerOptions<TRouter, WindowContextOptions, WindowOptions>,
 ) => {
-  const { router, createContext, onError, window } = opts;
+  const { router, createContext, onError, window, postOrigin } = opts;
   if (!window) {
     console.warn("Skipping window handler creation: 'opts.window' not defined");
     return;
@@ -41,7 +42,7 @@ export const createWindowHandler = <TRouter extends AnyRouter>(
         {
           trpc: { id: trpc.id, jsonrpc: trpc.jsonrpc, ...response },
         } as TRPCChromeResponse,
-        { targetOrigin: '*' },
+        { targetOrigin: postOrigin },
       );
     };
 

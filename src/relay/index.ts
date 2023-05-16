@@ -12,11 +12,9 @@ export function relay(
   function relayToWindow(message: RelayedTRPCMessage) {
     if (message.relayed) return;
     const relayedMessage: RelayedTRPCMessage = { ...message, relayed: true };
-    if (windowPostOrigin) {
-      window.postMessage(relayedMessage, windowPostOrigin);
-    } else {
-      window.postMessage(relayedMessage);
-    }
+    window.postMessage(relayedMessage, {
+      targetOrigin: windowPostOrigin,
+    });
   }
   function relayToPort(message: RelayedTRPCMessage) {
     if (message.relayed) return;
