@@ -1,6 +1,6 @@
 import type { AnyRouter } from '@trpc/server';
-import type { NodeHTTPCreateContextOption } from '@trpc/server/dist/adapters/node-http/types';
-import type { BaseHandlerOptions } from '@trpc/server/dist/internals/types';
+import type { NodeHTTPCreateContextOption } from '@trpc/server/adapters/node-http';
+import type { HTTPBaseHandlerOptions } from '@trpc/server/http';
 
 export type CreateContextOptions = { req: unknown; res: unknown };
 export type CreateHandlerOptions<
@@ -8,7 +8,7 @@ export type CreateHandlerOptions<
   TContextOptions extends CreateContextOptions,
   TOptions = Record<never, never>,
 > = Pick<
-  BaseHandlerOptions<TRouter, TContextOptions['req']> &
+  HTTPBaseHandlerOptions<TRouter, TContextOptions['req']> &
     NodeHTTPCreateContextOption<TRouter, TContextOptions['req'], TContextOptions['res']>,
   'router' | 'createContext' | 'onError'
 > &
