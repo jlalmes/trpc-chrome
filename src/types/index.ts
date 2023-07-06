@@ -10,6 +10,7 @@ export type TRPCChromeRequest = {
 };
 
 export type TRPCChromeSuccessResponse = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   trpc: TRPCResultMessage<any>;
 };
 
@@ -22,10 +23,10 @@ export type TRPCChromeResponse = TRPCChromeSuccessResponse | TRPCChromeErrorResp
 export type TRPCChromeMessage = TRPCChromeRequest | TRPCChromeResponse;
 export type RelayedTRPCMessage = TRPCChromeMessage & { relayed?: true };
 
-export type MinimalWindow = Pick<
-  Window,
-  'postMessage' | 'addEventListener' | 'removeEventListener'
->;
+export interface MinimalWindow
+  extends Pick<Window, 'postMessage' | 'addEventListener' | 'removeEventListener'> {
+  opener?: MinimalWindow;
+}
 
 export type MinimalPopupWindow = Pick<Window, 'postMessage' | 'closed'> &
   // addEventListener/removeEventListener are only available on the same origin
