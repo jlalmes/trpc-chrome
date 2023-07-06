@@ -1,6 +1,7 @@
 import type { TRPCLink } from '@trpc/client';
 import type { AnyRouter } from '@trpc/server';
 
+import { TRPC_BROWSER_LOADED_EVENT } from '../shared/constants';
 import type { MinimalPopupWindow, MinimalWindow, TRPCChromeMessage } from '../types';
 import { createBaseLink } from './internal/base';
 
@@ -18,17 +19,32 @@ export const popupLink = <TRouter extends AnyRouter>(opts: PopupLinkOptions): TR
   const closeHandlerSet = new Set<() => void>();
 
   let popupWindow: MinimalPopupWindow | null = null;
-  async function getPopup() {
+  async function getPopup(loadListenWindow: MinimalWindow) {
     if (!popupWindow || popupWindow.closed) {
       popupWindow = opts.createPopup();
-      // wait til window is loaded
       await Promise.race([
+        // wait til window is loaded (same origin)
         new Promise((resolve) => {
-          popupWindow?.addEventListener?.('load', resolve);
+          try {
+            popupWindow?.addEventListener?.('load', resolve);
+          } catch {
+            // if this throws, it's a cross-origin popup and should stay pending (never resolve)
+          }
         }),
-        // expect the popup to load within 2.5s, this is needed for cross-origin popups as they don't have a load event
+        // this is needed for cross-origin popups as they don't have a load event
+        new Promise<void>((resolve) => {
+          loadListenWindow.addEventListener('message', (event) => {
+            if (event.data === TRPC_BROWSER_LOADED_EVENT) {
+              resolve();
+            }
+          });
+        }),
+        // expect the popup to load after 15s max, in case non of the above events fire
         new Promise((resolve) => {
-          setTimeout(resolve, 2500);
+          console.warn(
+            'Could not detect if popup loading succeeded after 15s timeout, continuing anyway',
+          );
+          setTimeout(resolve, 15000);
         }),
       ]);
 
@@ -59,7 +75,7 @@ export const popupLink = <TRouter extends AnyRouter>(opts: PopupLinkOptions): TR
 
   return createBaseLink({
     async postMessage(message) {
-      const popup = await getPopup();
+      const popup = await getPopup(opts.listenWindow);
       return popup.postMessage(message, {
         targetOrigin: opts.postOrigin,
       });

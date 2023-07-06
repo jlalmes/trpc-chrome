@@ -1,6 +1,7 @@
 import { AnyProcedure, AnyRouter, TRPCError } from '@trpc/server';
 import { Unsubscribable, isObservable } from '@trpc/server/observable';
 
+import { TRPC_BROWSER_LOADED_EVENT } from '../shared/constants';
 import { isTRPCRequestWithId } from '../shared/trpcMessage';
 import type { MinimalWindow, TRPCChromeResponse } from '../types';
 import { CreateHandlerOptions } from './base';
@@ -21,6 +22,9 @@ export const createWindowHandler = <TRouter extends AnyRouter>(
     console.warn("Skipping window handler creation: 'opts.window' not defined");
     return;
   }
+
+  const loadListener = opts.postWindow ?? window.opener ?? window;
+  loadListener.postMessage(TRPC_BROWSER_LOADED_EVENT, { targetOrigin: postOrigin });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const { transformer } = router._def._config;
