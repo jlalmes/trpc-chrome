@@ -246,5 +246,5 @@ Distributed under the MIT License. See LICENSE for more information.
 
 ## 🛎️ Contact
 
-Janek Rahrt - Follow me on Twitter [@janek26](https://twitter.com/janek26) 💜
+Janek Rahrt - Follow me on Twitter [@0xjanek](https://twitter.com/0xjanek) 💜
 James Berry - Follow me on Twitter [@jlalmes](https://twitter.com/jlalmes) 💙
