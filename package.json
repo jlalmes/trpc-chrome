@@ -35,8 +35,8 @@
     "build": "rimraf dist && rimraf adapter && rimraf link && rimraf types && rimraf relay && rimraf shared && tsc -p tsconfig.build.json && mv dist/* . && rimraf dist"
   },
   "peerDependencies": {
-    "@trpc/client": "^10.0.0",
-    "@trpc/server": "^10.0.0"
+    "@trpc/client": "^10.28.0",
+    "@trpc/server": "^10.31.0"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
