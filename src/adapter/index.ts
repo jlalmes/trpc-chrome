@@ -108,10 +108,11 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
 
         const subscription = result.subscribe({
           next: (data) => {
+            const serializedData = transformer.output.serialize(data);
             sendResponse({
               result: {
                 type: 'data',
-                data,
+                data: serializedData,
               },
             });
           },
