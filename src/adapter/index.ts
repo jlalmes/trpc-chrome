@@ -128,14 +128,16 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
               req: port,
             });
 
+            const shapedError = router.getErrorShape({
+              error,
+              type: method,
+              path: params?.path,
+              input,
+              ctx,
+            });
+            const serializedError = transformer.output.serialize(shapedError);
             sendResponse({
-              error: router.getErrorShape({
-                error,
-                type: method,
-                path: params?.path,
-                input,
-                ctx,
-              }),
+              error: serializedError,
             });
           },
           complete: () => {
@@ -181,14 +183,16 @@ export const createChromeHandler = <TRouter extends AnyRouter>(
           req: port,
         });
 
+        const shapedError = router.getErrorShape({
+          error,
+          type: method as ProcedureType,
+          path: params?.path,
+          input,
+          ctx,
+        });
+        const serializedError = transformer.output.serialize(shapedError);
         sendResponse({
-          error: router.getErrorShape({
-            error,
-            type: method as ProcedureType,
-            path: params?.path,
-            input,
-            ctx,
-          }),
+          error: serializedError,
         });
       }
     };

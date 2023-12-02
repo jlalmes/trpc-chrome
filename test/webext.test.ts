@@ -1,7 +1,7 @@
 import { resetMocks } from './__setup';
 
-import { createTRPCProxyClient } from '@trpc/client';
-import { initTRPC } from '@trpc/server';
+import { TRPCClientError, createTRPCProxyClient } from '@trpc/client';
+import { TRPCError, initTRPC } from '@trpc/server';
 import { Unsubscribable, observable } from '@trpc/server/observable';
 import { z } from 'zod';
 
@@ -22,6 +22,38 @@ const appRouter = t.router({
       emit.next(input);
     }),
   ),
+
+  throwQuery: t.procedure.input(z.object({ payload: z.string() })).query(({ input }) => {
+    throw new Error(input.payload);
+  }),
+  throwTrpcErrorQuery: t.procedure.input(z.object({ payload: z.string() })).query(({ input }) => {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: input.payload });
+  }),
+  throwMutation: t.procedure.input(z.object({ payload: z.string() })).mutation(({ input }) => {
+    throw new Error(input.payload);
+  }),
+  throwTrpcErrorMutation: t.procedure
+    .input(z.object({ payload: z.string() }))
+    .mutation(({ input }) => {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: input.payload });
+    }),
+
+  throwSubscription: t.procedure
+    .input(z.object({ payload: z.string() }))
+    .subscription(({ input }) =>
+      observable<typeof input>((emit) => {
+        throw new TRPCError({ message: input.payload, code: 'BAD_REQUEST' });
+        emit.next(input);
+      }),
+    ),
+  errorSubscription: t.procedure
+    .input(z.object({ payload: z.string() }))
+    .subscription(({ input }) =>
+      observable<typeof input>((emit) => {
+        emit.error(new TRPCError({ message: input.payload, code: 'BAD_REQUEST' }));
+      }),
+    ),
+
   nestedRouter: t.router({
     echoQuery: t.procedure.input(z.object({ payload: z.string() })).query(({ input }) => input),
     echoMutation: t.procedure
@@ -62,6 +94,49 @@ test('with query', async () => {
   expect(data4).toEqual({ payload: 'query4' });
 });
 
+test('throw error with query', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  try {
+    await trpc.throwQuery.query({ payload: 'i error' });
+    fail('has to throw');
+  } catch (e) {
+    expect(e).toBeInstanceOf(TRPCClientError);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const castError = e as TRPCClientError<any>;
+    expect(castError.message).toEqual('i error');
+  }
+});
+test('throw trpc error with query', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  try {
+    await trpc.throwTrpcErrorQuery.query({ payload: 'i error' });
+    fail('has to throw');
+  } catch (e) {
+    expect(e).toBeInstanceOf(TRPCClientError);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const castError = e as TRPCClientError<any>;
+    expect(castError.message).toEqual('i error');
+  }
+});
+
 test('with mutation', async () => {
   // background
   createChromeHandler({ router: appRouter });
@@ -85,6 +160,50 @@ test('with mutation', async () => {
   ]);
   expect(data3).toEqual({ payload: 'mutation3' });
   expect(data4).toEqual({ payload: 'mutation4' });
+});
+
+test('throw error with mutation', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  try {
+    await trpc.throwMutation.mutate({ payload: 'I mutated' });
+    fail('has to throw');
+  } catch (e) {
+    expect(e).toBeInstanceOf(TRPCClientError);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const castError = e as TRPCClientError<any>;
+    expect(castError.message).toEqual('I mutated');
+  }
+});
+
+test('throw trpc error with mutation', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  try {
+    await trpc.throwTrpcErrorMutation.mutate({ payload: 'I mutated trpc' });
+    fail('has to throw');
+  } catch (e) {
+    expect(e).toBeInstanceOf(TRPCClientError);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const castError = e as TRPCClientError<any>;
+    expect(castError.message).toEqual('I mutated trpc');
+  }
 });
 
 test('with subscription', async () => {
@@ -130,6 +249,101 @@ test('with subscription', async () => {
   expect(onErrorMock).toHaveBeenCalledTimes(0);
   expect(onStartedMock).toHaveBeenCalledTimes(1);
   expect(onStoppedMock).toHaveBeenCalledTimes(1);
+});
+
+test('with error subscription', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  const onDataMock = jest.fn();
+  const onCompleteMock = jest.fn();
+  const onErrorMock = jest.fn();
+  const onStartedMock = jest.fn();
+  const onStoppedMock = jest.fn();
+
+  const subscription = await new Promise<Unsubscribable>((resolve) => {
+    const subscription = trpc.errorSubscription.subscribe(
+      { payload: 'subscription1' },
+      {
+        onData: onDataMock,
+        onComplete: onCompleteMock,
+        onError: (error) => {
+          onErrorMock(error);
+          resolve(subscription);
+        },
+        onStarted: onStartedMock,
+        onStopped: onStoppedMock,
+      },
+    );
+  });
+  expect(onDataMock).toHaveBeenCalledTimes(0);
+  expect(onCompleteMock).toHaveBeenCalledTimes(0);
+  expect(onErrorMock).toHaveBeenCalledTimes(1);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(onErrorMock.mock.calls[0][0].message).toEqual('subscription1');
+  expect(onStartedMock).toHaveBeenCalledTimes(0);
+  expect(onStoppedMock).toHaveBeenCalledTimes(0);
+  subscription.unsubscribe();
+  expect(onDataMock).toHaveBeenCalledTimes(0);
+  expect(onCompleteMock).toHaveBeenCalledTimes(0);
+  expect(onErrorMock).toHaveBeenCalledTimes(1);
+  expect(onStartedMock).toHaveBeenCalledTimes(0);
+  expect(onStoppedMock).toHaveBeenCalledTimes(0);
+});
+
+test('with throw subscription', async () => {
+  // background
+  createChromeHandler({ router: appRouter });
+  expect(chrome.runtime.onConnect.addListener).toHaveBeenCalledTimes(1);
+
+  // content
+  const port = chrome.runtime.connect();
+  const trpc = createTRPCProxyClient<typeof appRouter>({
+    links: [chromeLink({ port })],
+  });
+
+  const onDataMock = jest.fn();
+  const onCompleteMock = jest.fn();
+  const onErrorMock = jest.fn();
+  const onStartedMock = jest.fn();
+  const onStoppedMock = jest.fn();
+
+  const subscription = await new Promise<Unsubscribable>((resolve) => {
+    const subscription = trpc.throwSubscription.subscribe(
+      { payload: 'subscription1' },
+      {
+        onData: onDataMock,
+        onComplete: onCompleteMock,
+        onError: (error) => {
+          onErrorMock(error);
+          resolve(subscription);
+        },
+        onStarted: onStartedMock,
+        onStopped: onStoppedMock,
+      },
+    );
+  });
+
+  expect(onDataMock).toHaveBeenCalledTimes(0);
+  expect(onCompleteMock).toHaveBeenCalledTimes(0);
+  expect(onErrorMock).toHaveBeenCalledTimes(1);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(onErrorMock.mock.calls[0][0].message).toEqual('subscription1');
+  expect(onStartedMock).toHaveBeenCalledTimes(0);
+  expect(onStoppedMock).toHaveBeenCalledTimes(0);
+  subscription.unsubscribe();
+  expect(onDataMock).toHaveBeenCalledTimes(0);
+  expect(onCompleteMock).toHaveBeenCalledTimes(0);
+  expect(onErrorMock).toHaveBeenCalledTimes(1);
+  expect(onStartedMock).toHaveBeenCalledTimes(0);
+  expect(onStoppedMock).toHaveBeenCalledTimes(0);
 });
 
 test('with nested subscription', async () => {
